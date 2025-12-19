@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warung Makan DIDIRA</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            text-align: center; 
+            background-color: #8bd3dd; 
+            margin: 0; padding: 20px; }
+        .container { 
+            max-width: 600px; 
+            margin: auto; 
+            background-color: #e3f6f5; 
+            padding: 20px; 
+            border-radius: 10px; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1 { 
+            color: #333; }
+        .menu { 
+            text-align: left; 
+            margin: 20px 0; }
+        .menu-item { 
+            margin: 5px 0; }
+        .order-item { 
+            margin-bottom: 10px; }
+        label { 
+            display: block; 
+            margin: 5px 0; }
+        select, input { 
+            width: 100%; 
+            padding: 8px; 
+            margin-bottom: 5px; 
+            border: 1px solid #ccc;
+            border-radius: 4px; }
+        button { 
+            padding: 10px 20px; 
+            border: none; border-radius: 4px; 
+            cursor: pointer; margin: 5px; }
+        #tambahItem { 
+            background-color: #eebbc3; 
+            color: white; }
+        #tambahItem:hover { 
+            background-color: #ff8ba7; }
+        #pesan { 
+            background-color: #eebbc3; 
+            color: white; }
+        #pesan:hover { 
+            background-color: #ff8ba7; }
+        .struk { 
+            background-color: #f0f0f0; 
+            padding: 20px; 
+            border: 1px solid #ddd; 
+            border-radius: 5px; 
+            margin-top: 30px 0; 
+            display: none; 
+            text-align: left; }
+        .error { 
+            color: red; 
+            margin-top: 10px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>=== Warung Makan DIDIRA ===</h1>
+    <h3>Menu</h3>
+    <div class="menu">
+    <div class="menu-item">1. Nasi Goreng | Rp. 12000</div>
+    <div class="menu-item">2. Mie Ayam    | Rp. 13000</div>
+    <div class="menu-item">3. Bakso       | Rp. 15000</div>
+    <div class="menu-item">4. Es Teh      | Rp. 5000</div>
+    <div class="menu-item">5. Es Jeruk    | Rp. 9000</div>
+    <div class="menu-item">6. Es Sirup    | Rp. 6000</div>
+</div>
+
+    <form id="kasirForm">
+    <div class="order-item">
+    <label>Pilih Menu:</label>
+    <select class="nomor" required>
+    <option value="">Pilih Menu</option>
+    <option value="1" data-price="12000">Nasi Goreng - Rp. 12000</option>
+    <option value="2" data-price="13000">Mie Ayam - Rp. 13000</option>
+    <option value="3" data-price="15000">Bakso - Rp. 15000</option>
+    <option value="4" data-price="5000">Es Teh - Rp. 5000</option>
+    <option value="5" data-price="9000">Es Jeruk - Rp. 9000</option>
+    <option value="6" data-price="6000">Es Sirup - Rp. 6000</option>
+</select>
+
+            <label>Jumlah:</label>
+            <input type="number" class="jumlah" min="1" required>
+        </div>
+
+        <button type="button" id="tambahItem">Tambah Menu Lain</button>
+        <div id="totalSementara">Total Pesanan: Rp 0</div>
+        <label>Uang Tunai Pembeli:</label>
+        <input type="number" id="uang" min="0" required>
+
+        <button type="submit" id="pesan">Hitung & Cetak Struk</button>
+        <div id="error" class="error"></div>
+    </form>
+
+    <div id="struk" class="struk">
+        <h2>Warung Makan DIDIRA</h2>
+        <h3>=========== STRUK ===========</h3>
+        <div id="beli"></div>
+        <p>=================================</p>
+        <div id="total"></div>
+        <div id="dibayar"></div>
+        <div id="kembalian"></div>
+        <p>=================================</p>
+        <p>Terima Kasih</p>
+    </div>
+</div>
+
+<script>
+const menuData = {
+    1: { name: "Nasi Goreng", price: 12000 },
+    2: { name: "Mie Ayam", price: 13000 },
+    3: { name: "Bakso", price: 15000 },
+    4: { name: "Es Teh", price: 5000 },
+    5: { name: "Es Jeruk", price: 9000 },
+    6: { name: "Es Sirup", price: 6000 }
+};
+
+const form = document.getElementById('kasirForm');
+const tambahBtn = document.getElementById('tambahItem');
+const errorDiv = document.getElementById('error');
+const strukDiv = document.getElementById('struk');
+const beliDiv = document.getElementById('beli');
+const totalDiv = document.getElementById('total');
+const dibayarDiv = document.getElementById('dibayar');
+const kembalianDiv = document.getElementById('kembalian');
+const totalSementaraDiv = document.getElementById('totalSementara');
+
+// Fungsi update total sementara
+function updateTotalSementara(){
+    const menuSel = document.querySelectorAll('.nomor');
+    const jumlahInp = document.querySelectorAll('.jumlah');
+    let total = 0;
+
+    for(let i=0; i<menuSel.length; i++){
+        const kode = menuSel[i].value;
+        const qty = parseInt(jumlahInp[i].value) || 0;
+
+        if(menuData[kode]){
+            total += menuData[kode].price * qty;
+        }
+    }
+
+    totalSementaraDiv.textContent = `Total Pesanan: Rp ${total.toLocaleString()}`;
+}
+
+// Tambah menu baru
+tambahBtn.addEventListener('click', () => {
+    const newItem = document.querySelector('.order-item').cloneNode(true);
+    newItem.querySelector('.nomor').value = '';
+    newItem.querySelector('.jumlah').value = '';
+    form.insertBefore(newItem, tambahBtn);
+});
+
+// Update total setiap kali ada perubahan menu/jumlah
+document.addEventListener('input', function(e){
+    if(e.target.classList.contains('nomor') || e.target.classList.contains('jumlah')){
+        updateTotalSementara();
+    }
+});
+
+// Submit form
+form.addEventListener('submit', function(e){
+    e.preventDefault();
+    errorDiv.textContent = '';
+
+    const menuSel = document.querySelectorAll('.nomor');
+    const jumlahInp = document.querySelectorAll('.jumlah');
+    const uang = parseInt(document.getElementById('uang').value);
+
+    let totalHarga = 0;
+    let strukHtml = "";
+
+    for(let i=0; i<menuSel.length; i++){
+        const kode = menuSel[i].value;
+        const qty = parseInt(jumlahInp[i].value);
+
+        if(!menuData[kode]){
+            errorDiv.textContent = "Pilihan menu tidak valid!";
+            return;
+        }
+
+        const harga = menuData[kode].price * qty;
+        totalHarga += harga;
+
+        strukHtml += `<p>${menuData[kode].name} - ${qty} porsi = Rp ${harga}</p>`;
+    }
+
+
+    if(uang < totalHarga){
+        errorDiv.textContent = "Uang tidak cukup!";
+        return;
+    }
+
+    const kembalian = uang - totalHarga;
+
+    beliDiv.innerHTML = strukHtml;
+    totalDiv.textContent = `Total : Rp ${totalHarga}`;
+    dibayarDiv.textContent = `Dibayar : Rp ${uang}`;
+    kembalianDiv.textContent = `Kembalian : Rp ${kembalian}`;
+
+    strukDiv.style.display = 'block';
+});
+</script>
+</body>
+</html>
